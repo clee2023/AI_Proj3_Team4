@@ -9,7 +9,6 @@ import pandas as pd
 img = np.load("images.npy")
 labels = np.load("labels.npy")
 hot_labels = np_utils.to_categorical([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], num_classes=10)
-# print(hot_labels)
 # print(img.shape)
 # print(labels.shape)
 # print(img[1, :])
@@ -52,9 +51,13 @@ val = pd.concat(val_frames)
 val = val.sample(frac=1)
 
 
-# print(train.shape, test.shape, val.shape)
+print(train.shape, test.shape, val.shape)
 
-def get_outputs(sample):
+
+"""Converts dataframe outputs to ndarrays for keras usage"""
+
+
+def get_fitting_outputs(sample):
     output = np.empty((0, 10))
     # get last column and convert to hot-vector
     # print(sample.iloc[:, -1:])
@@ -65,20 +68,23 @@ def get_outputs(sample):
 
 
 x_train = train.drop(columns=784).to_numpy()
-y_train = get_outputs(train)
+y_train = get_fitting_outputs(train)
 
 x_val = val.drop(columns=784).to_numpy()
-y_val = get_outputs(val)
+y_val = get_fitting_outputs(val)
 
 x_test = test.drop(columns=784).to_numpy()
-y_test = get_outputs(test)
+y_test = test.iloc[:, -1:].to_numpy()
+
+# print(x_test)
+# print(y_test)
 
 # print(x_train)
 # print(y_train)
 # print(x_train.shape, y_train.shape)
 
-model = Sequential() # declare model
-model.add(Dense(10, input_shape=(28*28, ), kernel_initializer='he_normal'))  # first layer
+model = Sequential()  # declare model
+model.add(Dense(10, input_shape=(28 * 28,), kernel_initializer='he_normal'))  # first layer
 model.add(Activation('relu'))
 #
 #
@@ -86,9 +92,8 @@ model.add(Activation('relu'))
 # Fill in Model Here
 #
 #
-model.add(Dense(10, kernel_initializer='he_normal')) # last layer
+model.add(Dense(10, kernel_initializer='he_normal'))  # last layer
 model.add(Activation('softmax'))
-
 
 # Compile Model
 model.compile(optimizer='sgd',
@@ -97,13 +102,34 @@ model.compile(optimizer='sgd',
 
 # Train Model
 history = model.fit(x_train, y_train,
-                    validation_data = (x_val, y_val),
+                    validation_data=(x_val, y_val),
                     epochs=10,
                     batch_size=512)
-
 
 # Report Results
 
 print(history.history)
 predictions = model.predict(x=x_test)
-print(predictions)
+print(predictions.shape)
+
+"""Converts hot_vector to categorical value"""
+
+
+def hot_to_num(results):
+    categories = np.empty((0, len(results)))
+    for hot_vector in results:
+        # print(hot_vector)
+        categories = np.append(categories, np.where(hot_vector == np.amax(hot_vector)))
+    return categories
+
+
+predictions = hot_to_num(predictions)
+# print(predictions)
+
+confusion_matrix = np.zeros((10, 10))
+for iteration, prediction in enumerate(predictions):
+    # print(prediction)
+    np.add.at(confusion_matrix, tuple(np.array([int(y_test[iteration]), int(prediction)]).T), 1)
+
+confusion_matrix = pd.DataFrame(confusion_matrix)
+print(confusion_matrix)
