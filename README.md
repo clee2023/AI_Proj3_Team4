@@ -1,2 +1,2 @@
 # AI_Proj3_Team4
-Clothes picker
+The Best Clothes picker
