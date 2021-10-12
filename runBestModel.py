@@ -11,6 +11,7 @@ from keras.utils import np_utils
 from PIL import Image
 import numpy as np
 import pandas as pd
+from sklearn.metrics import precision_score, recall_score
 
 # Model Template
 
@@ -113,10 +114,6 @@ for iteration, prediction in enumerate(predictions):
     # print(prediction)
     np.add.at(confusion_matrix, tuple(np.array([int(y_test[iteration]), int(prediction)]).T), 1)
 
-confusion_matrix = pd.DataFrame(confusion_matrix)
-print(confusion_matrix)
-
-
 wrong_index = [0, 0, 0]
 counter = 0
 for iteration, prediction in enumerate(predictions):
@@ -131,13 +128,43 @@ for i in range(3):
     wrong_image = np.reshape(x_test[wrong_index[i]], (28, 28))
     Image.fromarray(wrong_image).save('incorrect' + str(i) + '.png')
 
+
 def get_prediction_accuracy(results):
     total = len(results)
     count = 0
-    for counter, result in enumerate(results):
-        if y_test[counter] == result:
+    for number, result in enumerate(results):
+        if y_test[number] == result:
             count += 1
     return float(count / total)
 
 
-print(get_prediction_accuracy(predictions))
+def get_prediction_precision(confusion):
+    precisions = np.zeros(10)
+    for k in range(10):
+        true_positive = 0
+        true_false_positive = 0
+        true_positive += confusion[k, k]
+        for j in range(10):
+            true_false_positive += confusion[j, k]
+        precisions[k] = true_positive / true_false_positive
+    return np.average(precisions)
+
+
+def get_prediction_recall(confusion):
+    recalls = np.zeros(10)
+    for k in range(10):
+        true_positive = 0
+        false_negative = 0
+        true_positive += confusion[k, k]
+        for j in range(10):
+            if k != j:
+                false_negative += confusion[k, j]
+        recalls[k] = true_positive / (true_positive + false_negative)
+    return np.average(recalls)
+
+
+print('Accuracy: ' + str(get_prediction_accuracy(predictions)))
+print('Precision: ' + str(get_prediction_precision(confusion_matrix)))
+print('Recall: ' + str(get_prediction_recall(confusion_matrix)))
+confusion_matrix = pd.DataFrame(confusion_matrix)
+print(confusion_matrix)

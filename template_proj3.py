@@ -179,35 +179,49 @@ for i in range(3):
 def get_prediction_accuracy(results):
     total = len(results)
     count = 0
-    for counter, result in enumerate(results):
-        if y_test[counter] == result:
+    for number, result in enumerate(results):
+        if y_test[number] == result:
             count += 1
     return float(count / total)
 
 
 def get_prediction_precision(confusion):
-    true_positive = 0
-    false_positive = 0
-
-    for i in range(10):
-        true_positive += confusion[i, i]
+    precisions = np.zeros(10)
+    for k in range(10):
+        true_positive = 0
+        true_false_positive = 0
+        true_positive += confusion[k, k]
         for j in range(10):
-            if i != j:
-                false_positive += confusion[j, i]
-    return true_positive / (true_positive + false_positive)
+            true_false_positive += confusion[j, k]
+        precisions[k] = true_positive / true_false_positive
+    return np.average(precisions)
 
 
-print(get_prediction_accuracy(predictions))
-print(history.history["precision"][-1])
-print(history.history["recall"][-1])
+def get_prediction_recall(confusion):
+    recalls = np.zeros(10)
+    for k in range(10):
+        true_positive = 0
+        false_negative = 0
+        true_positive += confusion[k, k]
+        for j in range(10):
+            if k != j:
+                false_negative += confusion[k, j]
+        recalls[k] = true_positive / (true_positive + false_negative)
+    return np.average(recalls)
 
-"""COMMENT OR UNCOMMENT THIS LINE BELOW TO ACTUALLY SAVE/NOT SAVE MODEL"""
+
+print('Accuracy: ' + str(get_prediction_accuracy(predictions)))
+print('Precision: ' + str(get_prediction_precision(confusion_matrix)))
+print('Recall: ' + str(get_prediction_recall(confusion_matrix)))
+# print(history.history["precision"][-1])
+# print(history.history["recall"][-1])
+
+"""COMMENT/UNCOMMENT THIS LINE BELOW TO ACTUALLY NOT SAVE/SAVE MODEL"""
 # model.save('best_trained_model', save_format='tf')
 
 """PRINT CONFUSION MATRIX"""
 confusion_matrix = pd.DataFrame(confusion_matrix)
 print(confusion_matrix)
-
 
 """PLOTS FROM TRAINING"""
 f, (ax1, ax2, ax3) = plt.subplots(1, 3)
