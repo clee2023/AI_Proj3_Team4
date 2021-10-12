@@ -90,6 +90,14 @@ model.add(Activation('relu'))
 #
 #
 # Fill in Model Here
+model.add(Dense(10, kernel_initializer='he_normal'))
+model.add(Activation('sigmoid'))
+# model.add(Dense(10, kernel_initializer='he_normal'))
+# model.add(Activation('softplus'))
+# model.add(Dense(10, kernel_initializer='he_normal'))
+# model.add(Activation('softsign'))
+model.add(Dense(10, kernel_initializer='he_normal'))
+model.add(Activation('tanh'))
 #
 #
 model.add(Dense(10, kernel_initializer='he_normal'))  # last layer
@@ -103,7 +111,7 @@ model.compile(optimizer='sgd',
 # Train Model
 history = model.fit(x_train, y_train,
                     validation_data=(x_val, y_val),
-                    epochs=10,
+                    epochs=80,
                     batch_size=512)
 
 # Report Results
