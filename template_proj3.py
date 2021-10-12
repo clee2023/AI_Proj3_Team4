@@ -1,3 +1,7 @@
+import os
+os.add_dll_directory("C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.4/bin")
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
 from keras.models import Sequential
 from keras.layers import Dense, Activation
 from keras.utils import np_utils
@@ -51,7 +55,7 @@ val = pd.concat(val_frames)
 val = val.sample(frac=1)
 
 
-print(train.shape, test.shape, val.shape)
+# print(train.shape, test.shape, val.shape)
 
 
 """Converts dataframe outputs to ndarrays for keras usage"""
