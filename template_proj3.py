@@ -3,6 +3,7 @@ from keras.layers import Dense, Activation
 from keras.utils import np_utils
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
 # Model Template
 
@@ -76,13 +77,6 @@ y_val = get_fitting_outputs(val)
 x_test = test.drop(columns=784).to_numpy()
 y_test = test.iloc[:, -1:].to_numpy()
 
-# print(x_test)
-# print(y_test)
-
-# print(x_train)
-# print(y_train)
-# print(x_train.shape, y_train.shape)
-
 model = Sequential()  # declare model
 model.add(Dense(10, input_shape=(28 * 28,), kernel_initializer='he_normal'))  # first layer
 model.add(Activation('relu'))
@@ -90,6 +84,15 @@ model.add(Activation('relu'))
 #
 #
 # Fill in Model Here
+model.add(Dense(6, activation='tanh', kernel_initializer='random_normal'))
+model.add(Dense(6, activation='tanh', kernel_initializer='random_normal'))
+# model.add(Dense(6, activation='tanh', kernel_initializer='zeros'))
+# model.add(Dense(6, activation='tanh', kernel_initializer='zeros'))
+# model.add(Dense(6, activation='tanh', kernel_initializer='he_normal'))
+# model.add(Dense(6, activation='tanh', kernel_initializer='he_normal'))
+# model.add(Dense(6, activation='tanh', kernel_initializer='he_normal'))
+# model.add(Dense(6, activation='tanh', kernel_initializer='he_normal'))
+# model.add(Dense(6, activation='tanh', kernel_initializer='he_normal'))
 #
 #
 model.add(Dense(10, kernel_initializer='he_normal'))  # last layer
@@ -103,12 +106,29 @@ model.compile(optimizer='sgd',
 # Train Model
 history = model.fit(x_train, y_train,
                     validation_data=(x_val, y_val),
-                    epochs=10,
-                    batch_size=512)
+                    epochs=1000,
+                    batch_size=900,
+                    verbose=0)
 
 # Report Results
 
-print(history.history)
+plt.plot(history.history["accuracy"])
+plt.plot(history.history['val_accuracy'])
+plt.title('model accuracy')
+plt.ylabel('accuracy')
+plt.xlabel('epoch')
+plt.legend(['train', 'test'], loc='upper left')
+plt.show()
+
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+plt.title('model loss')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+plt.legend(['train', 'test'], loc='upper left')
+plt.show()
+
+# print(history.history)
 predictions = model.predict(x=x_test)
 print(predictions.shape)
 
