@@ -192,6 +192,7 @@ print(get_prediction_accuracy(predictions))
 print(history.history["precision"][-1])
 print(history.history["recall"][-1])
 
+"""COMMENT OR UNCOMMENT THIS LINE BELOW TO ACTUALLY SAVE/NOT SAVE MODEL"""
 # model.save('best_trained_model', save_format='tf')
 
 confusion_matrix = pd.DataFrame(confusion_matrix)
