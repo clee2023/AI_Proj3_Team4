@@ -13,7 +13,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # Model Template
-
+"""PRE PROCESSING"""
 img = np.load("images.npy")
 labels = np.load("labels.npy")
 hot_labels = np_utils.to_categorical([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], num_classes=10)
@@ -25,11 +25,13 @@ hot_labels = np_utils.to_categorical([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], num_classes
 df = pd.DataFrame(img)
 # print(df)
 
-df[784] = labels
-
+df[784] = labels  # column for matching correct labels
 
 #
 # print(df.describe())
+
+
+"""Splits the data by category for stratified sampling"""
 
 
 def split(df: pd.DataFrame):
@@ -90,6 +92,8 @@ y_test = test.iloc[:, -1:].to_numpy()
 # print(y_train)
 # print(x_train.shape, y_train.shape)
 
+"""MAKE MODEL"""
+
 model = Sequential()  # declare model
 model.add(Dense(20, input_shape=(28 * 28,), kernel_initializer='he_normal'))  # first layer
 model.add(Activation('selu'))
@@ -136,6 +140,7 @@ predictions = model.predict(x=x_test)
 print("GETTING REPORT")
 """Converts hot_vector to categorical value"""
 
+
 def hot_to_num(results):
     categories = np.empty((0, len(results)))
     for hot_vector in results:
@@ -147,11 +152,13 @@ def hot_to_num(results):
 predictions = hot_to_num(predictions)
 # print(predictions)
 
+"""MAKE CONFUSION MATRIX"""
 confusion_matrix = np.zeros((10, 10))
 for iteration, prediction in enumerate(predictions):
     # print(prediction)
     np.add.at(confusion_matrix, tuple(np.array([int(y_test[iteration]), int(prediction)]).T), 1)
 
+"""MAKE INCORRECT IMAGES"""
 wrong_index = [0, 0, 0]
 counter = 0
 for iteration, prediction in enumerate(predictions):
@@ -165,6 +172,8 @@ for iteration, prediction in enumerate(predictions):
 for i in range(3):
     wrong_image = np.reshape(x_test[wrong_index[i]], (28, 28))
     Image.fromarray(wrong_image).save('incorrect' + str(i) + '.png')
+
+"""GET ACCURACY,PRECISION,RECALL"""
 
 
 def get_prediction_accuracy(results):
@@ -195,9 +204,12 @@ print(history.history["recall"][-1])
 """COMMENT OR UNCOMMENT THIS LINE BELOW TO ACTUALLY SAVE/NOT SAVE MODEL"""
 # model.save('best_trained_model', save_format='tf')
 
+"""PRINT CONFUSION MATRIX"""
 confusion_matrix = pd.DataFrame(confusion_matrix)
 print(confusion_matrix)
 
+
+"""PLOTS FROM TRAINING"""
 f, (ax1, ax2, ax3) = plt.subplots(1, 3)
 ax1.plot(history.history["accuracy"])
 ax1.plot(history.history['val_accuracy'])
