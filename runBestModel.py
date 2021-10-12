@@ -5,9 +5,9 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 from keras.models import load_model
 from keras.utils import np_utils
+from PIL import Image
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 
 # Model Template
 
@@ -113,6 +113,20 @@ for iteration, prediction in enumerate(predictions):
 confusion_matrix = pd.DataFrame(confusion_matrix)
 print(confusion_matrix)
 
+
+wrong_index = [0, 0, 0]
+counter = 0
+for iteration, prediction in enumerate(predictions):
+    # print(prediction)
+    if counter == 3:
+        break
+    if y_test[iteration] != prediction:
+        wrong_index[counter] = iteration
+        counter += 1
+
+for i in range(3):
+    wrong_image = np.reshape(x_test[wrong_index[i]], (28, 28))
+    Image.fromarray(wrong_image).save('incorrect' + str(i) + '.png')
 
 def get_prediction_accuracy(results):
     total = len(results)

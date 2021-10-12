@@ -6,6 +6,8 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 from keras.models import Sequential
 from keras.layers import Dense, Activation
 from keras.utils import np_utils
+from keras.metrics import Precision, Recall
+from PIL import Image
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -89,19 +91,25 @@ y_test = test.iloc[:, -1:].to_numpy()
 # print(x_train.shape, y_train.shape)
 
 model = Sequential()  # declare model
-model.add(Dense(10, input_shape=(28 * 28,), kernel_initializer='he_normal'))  # first layer
-model.add(Activation('relu'))
+model.add(Dense(20, input_shape=(28 * 28,), kernel_initializer='he_normal'))  # first layer
+model.add(Activation('selu'))
 #
 #
 #
 # Fill in Model Here
-model.add(Dense(20, kernel_initializer='random_normal'))
-model.add(Activation('sigmoid'))
-# model.add(Dense(10, kernel_initializer='he_normal'))
-# model.add(Activation('softplus'))
 
-model.add(Dense(15, kernel_initializer='random_normal'))
+model.add(Dense(40, kernel_initializer='glorot_normal'))
 model.add(Activation('tanh'))
+
+model.add(Dense(30, kernel_initializer='random_normal'))
+model.add(Activation('tanh'))
+
+model.add(Dense(20, kernel_initializer='random_normal'))
+model.add(Activation('relu'))
+
+model.add(Dense(15, kernel_initializer='he_normal'))
+model.add(Activation('tanh'))
+
 #
 #
 model.add(Dense(10, kernel_initializer='he_normal'))  # last layer
@@ -110,23 +118,23 @@ model.add(Activation('softmax'))
 # Compile Model
 model.compile(optimizer='sgd',
               loss='categorical_crossentropy',
-              metrics=['accuracy'])
+              metrics=['accuracy', Precision(), Recall()])
 
 # Train Model
 history = model.fit(x_train, y_train,
                     validation_data=(x_val, y_val),
                     epochs=1000,
-                    batch_size=512,
+                    batch_size=200,
                     verbose=0)
 
 # Report Results
 
-print(max(history.history['accuracy']))
+# print(max(history.history['accuracy']))
 predictions = model.predict(x=x_test)
 # print(predictions.shape)
 
+print("GETTING REPORT")
 """Converts hot_vector to categorical value"""
-
 
 def hot_to_num(results):
     categories = np.empty((0, len(results)))
@@ -144,8 +152,19 @@ for iteration, prediction in enumerate(predictions):
     # print(prediction)
     np.add.at(confusion_matrix, tuple(np.array([int(y_test[iteration]), int(prediction)]).T), 1)
 
-confusion_matrix = pd.DataFrame(confusion_matrix)
-print(confusion_matrix)
+wrong_index = [0, 0, 0]
+counter = 0
+for iteration, prediction in enumerate(predictions):
+    # print(prediction)
+    if counter == 3:
+        break
+    if y_test[iteration] != prediction:
+        wrong_index[counter] = iteration
+        counter += 1
+
+for i in range(3):
+    wrong_image = np.reshape(x_test[wrong_index[i]], (28, 28))
+    Image.fromarray(wrong_image).save('incorrect' + str(i) + '.png')
 
 
 def get_prediction_accuracy(results):
@@ -157,20 +176,43 @@ def get_prediction_accuracy(results):
     return float(count / total)
 
 
+def get_prediction_precision(confusion):
+    true_positive = 0
+    false_positive = 0
+
+    for i in range(10):
+        true_positive += confusion[i, i]
+        for j in range(10):
+            if i != j:
+                false_positive += confusion[j, i]
+    return true_positive / (true_positive + false_positive)
+
+
 print(get_prediction_accuracy(predictions))
+print(history.history["precision"][-1])
+print(history.history["recall"][-1])
 
 # model.save('best_trained_model', save_format='tf')
 
-f, (ax1, ax2) = plt.subplots(1, 2)
+confusion_matrix = pd.DataFrame(confusion_matrix)
+print(confusion_matrix)
+
+f, (ax1, ax2, ax3) = plt.subplots(1, 3)
 ax1.plot(history.history["accuracy"])
 ax1.plot(history.history['val_accuracy'])
 ax1.set_title('model accuracy')
 ax1.set(xlabel='epoch', ylabel='accuracy')
-ax1.legend(['train', 'test'], loc='upper left')
+ax1.legend(['train', 'validate'], loc='upper left')
 
-ax2.plot(history.history['loss'])
-ax2.plot(history.history['val_loss'])
-ax2.set_title('model loss')
-ax2.set(xlabel='epoch', ylabel='loss')
-ax2.legend(['train', 'test'], loc='upper left')
+ax2.plot(history.history['precision'])
+ax2.plot(history.history['val_precision'])
+ax2.set_title('model precision')
+ax2.set(xlabel='epoch', ylabel='precision')
+ax2.legend(['train', 'validate'], loc='upper left')
+
+ax3.plot(history.history['recall'])
+ax3.plot(history.history['val_recall'])
+ax3.set_title('model recall')
+ax3.set(xlabel='epoch', ylabel='recall')
+ax3.legend(['train', 'validate'], loc='upper left')
 plt.show()
