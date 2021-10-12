@@ -3,8 +3,7 @@ import os
 os.add_dll_directory("C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.4/bin")
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-from keras.models import Sequential
-from keras.layers import Dense, Activation
+from keras.models import load_model
 from keras.utils import np_utils
 import numpy as np
 import pandas as pd
@@ -88,40 +87,7 @@ y_test = test.iloc[:, -1:].to_numpy()
 # print(y_train)
 # print(x_train.shape, y_train.shape)
 
-model = Sequential()  # declare model
-model.add(Dense(10, input_shape=(28 * 28,), kernel_initializer='he_normal'))  # first layer
-model.add(Activation('relu'))
-#
-#
-#
-# Fill in Model Here
-model.add(Dense(20, kernel_initializer='random_normal'))
-model.add(Activation('sigmoid'))
-# model.add(Dense(10, kernel_initializer='he_normal'))
-# model.add(Activation('softplus'))
-
-model.add(Dense(15, kernel_initializer='random_normal'))
-model.add(Activation('tanh'))
-#
-#
-model.add(Dense(10, kernel_initializer='he_normal'))  # last layer
-model.add(Activation('softmax'))
-
-# Compile Model
-model.compile(optimizer='sgd',
-              loss='categorical_crossentropy',
-              metrics=['accuracy'])
-
-# Train Model
-history = model.fit(x_train, y_train,
-                    validation_data=(x_val, y_val),
-                    epochs=1000,
-                    batch_size=512,
-                    verbose=0)
-
-# Report Results
-
-print(max(history.history['accuracy']))
+model = load_model('best_trained_model')
 predictions = model.predict(x=x_test)
 # print(predictions.shape)
 
@@ -158,19 +124,3 @@ def get_prediction_accuracy(results):
 
 
 print(get_prediction_accuracy(predictions))
-
-# model.save('best_trained_model', save_format='tf')
-
-f, (ax1, ax2) = plt.subplots(1, 2)
-ax1.plot(history.history["accuracy"])
-ax1.plot(history.history['val_accuracy'])
-ax1.set_title('model accuracy')
-ax1.set(xlabel='epoch', ylabel='accuracy')
-ax1.legend(['train', 'test'], loc='upper left')
-
-ax2.plot(history.history['loss'])
-ax2.plot(history.history['val_loss'])
-ax2.set_title('model loss')
-ax2.set(xlabel='epoch', ylabel='loss')
-ax2.legend(['train', 'test'], loc='upper left')
-plt.show()
